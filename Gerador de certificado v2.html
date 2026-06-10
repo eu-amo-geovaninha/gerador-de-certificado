@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Certificados Duvidosos™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1a1a2e;
+      --panel: #16213e;
+      --card: #0f3460;
+      --accent: #e94560;
+      --gold: #f5c518;
+      --text: #eaeaea;
+      --muted: #8892a4;
+      --border: #2a3a5c;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    /* ── HEADER ── */
+    header {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    header .logo {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 24px;
+      color: var(--gold);
+    }
+    header .tagline { font-size: 11px; color: var(--muted); font-style: italic; }
+    header .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── SIDEBAR ── */
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    aside::-webkit-scrollbar { width: 5px; }
+    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 10px; }
+
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 3px; }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      padding: 8px 11px;
+      outline: none;
+      transition: border-color .2s;
+      resize: none;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    select option { background: var(--card); }
+
+    .color-row { display: flex; align-items: center; gap: 10px; }
+    input[type="color"] {
+      width: 34px; height: 34px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: none;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .range-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    .range-val { font-size: 12px; color: var(--gold); min-width: 32px; text-align: right; }
+
+    /* Orientation toggle */
+    .orient-row {
+      display: flex;
+      gap: 8px;
+    }
+    .orient-btn {
+      flex: 1;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: border-color .15s, color .15s, background .15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .orient-btn:hover { border-color: var(--gold); }
+    .orient-btn.active { border-color: var(--accent); background: #1e0b15; color: var(--text); }
+    .orient-icon {
+      border: 2px solid currentColor;
+      border-radius: 2px;
+      opacity: .7;
+    }
+    .orient-icon.portrait { width: 18px; height: 24px; }
+    .orient-icon.landscape { width: 24px; height: 18px; }
+
+    .emoji-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+    .emoji-btn {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 17px;
+      width: 36px; height: 36px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s, transform .1s;
+    }
+    .emoji-btn:hover { border-color: var(--gold); transform: scale(1.1); }
+    .emoji-btn.active { border-color: var(--accent); background: #2a0f1a; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle { position: relative; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0;
+      background: var(--border);
+      border-radius: 22px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      background: white;
+      border-radius: 50%;
+      left: 3px; top: 3px;
+      transition: .2s;
+    }
+    .toggle input:checked + .slider { background: var(--accent); }
+    .toggle input:checked + .slider::before { transform: translateX(18px); }
+
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    .btn-download {
+      background: linear-gradient(135deg, var(--accent), #c0392b);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity .2s, transform .1s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-download:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-download:active { transform: translateY(0); }
+    .btn-download:disabled { opacity: .6; cursor: wait; transform: none; }
+
+    /* ── PREVIEW AREA ── */
+    main {
+      background: #111827;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 24px;
+      overflow-y: auto;
+    }
+    .preview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .preview-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .orientation-badge {
+      font-size: 10px;
+      color: var(--gold);
+      background: #1a1200;
+      border: 1px solid #3a2a00;
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: .5px;
+    }
+
+    /* ── CERT WRAPPER (handles scaling) ── */
+    #cert-wrapper {
+      transform-origin: top center;
+      transition: transform .25s ease;
+    }
+
+    /* ── CERTIFICATE BASE ── */
+    #certificate {
+      background: #fdf6e3;
+      position: relative;
+      overflow: hidden;
+      font-family: 'Crimson Text', serif;
+      color: #1a0a00;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Noise texture */
+    #certificate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: .5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Watermark */
+    #cert-watermark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: .06;
+      pointer-events: none;
+      z-index: 0;
+      line-height: 1;
+    }
+
+    /* Emoji borders */
+    #cert-border-top, #cert-border-bottom {
+      position: absolute;
+      left: 0; right: 0;
+      text-align: center;
+      letter-spacing: 4px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      z-index: 1;
+    }
+    #cert-border-top { top: 10px; }
+    #cert-border-bottom { bottom: 10px; }
+
+    #cert-border-left, #cert-border-right {
+      position: absolute;
+      top: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.4;
+      z-index: 1;
+      overflow: hidden;
+      width: 38px;
+    }
+    #cert-border-left { left: 8px; }
+    #cert-border-right { right: 8px; }
+
+    /* Inner border lines */
+    .inner-border {
+      position: absolute;
+      border-style: double;
+      border-color: #8B6914;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .inner-border.outer { inset: 48px; border-width: 3px; }
+    .inner-border.inner { inset: 54px; border-width: 1px; }
+
+    /* Content */
+    .cert-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #cert-entity {
+      font-family: 'UnifrakturMaguntia', serif;
+      color: #8B1A1A;
+      letter-spacing: 2px;
+      text-align: center;
+      line-height: 1.2;
+    }
+    #cert-top-line {
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #8B1A1A;
+      opacity: .8;
+    }
+    .cert-rule {
+      background: linear-gradient(to right, transparent, #8B6914, transparent);
+      margin: 0 auto;
+    }
+    .cert-rule.thick { background: linear-gradient(to right, transparent, #8B1A1A, transparent); }
+
+    #cert-certifica {
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #555;
+    }
+    #cert-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-style: italic;
+      text-align: center;
+      line-height: 1.1;
+      color: #1a0a00;
+      word-break: break-word;
+    }
+    .cert-to-text {
+      color: #666;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    #cert-name {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      text-align: center;
+      line-height: 1.1;
+      color: #8B1A1A;
+      border-bottom: 1px solid #8B6914;
+      min-width: 55%;
+      text-align: center;
+      word-break: break-word;
+    }
+    #cert-reason-block { text-align: center; }
+    #cert-reason-label { letter-spacing: 2px; text-transform: uppercase; color: #777; }
+    #cert-reason { font-style: italic; line-height: 1.5; color: #1a0a00; }
+    #cert-date { color: #666; letter-spacing: 1px; }
+
+    .cert-signatures {
+      display: flex;
+      justify-content: center;
+    }
+    .cert-sig {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .cert-sig-line { background: #1a0a00; opacity: .4; }
+    .cert-sig-name {
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #555;
+      text-align: center;
+    }
+
+    #cert-stamp {
+      position: absolute;
+      z-index: 3;
+      border-radius: 50%;
+      border: 4px double #8B1A1A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #8B1A1A;
+      text-align: center;
+      opacity: .85;
+      transform: rotate(-12deg);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Certificado Duvidoso™</div>
+    <div class="tagline">Reconhecimento oficial para conquistas que ninguém pediu</div>
+  </div>
+  <span class="badge">✦ GRÁTIS E SEM VALOR</span>
+</header>
+
+<aside>
+
+  <!-- ORIENTAÇÃO -->
+  <div>
+    <div class="section-title">📐 Orientação</div>
+    <div class="orient-row">
+      <button class="orient-btn active" id="btn-portrait" onclick="setOrientation('portrait')">
+        <div class="orient-icon portrait"></div>
+        Retrato
+      </button>
+      <button class="orient-btn" id="btn-landscape" onclick="setOrientation('landscape')">
+        <div class="orient-icon landscape"></div>
+        Paisagem
+      </button>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- CONTEÚDO -->
+  <div>
+    <div class="section-title">✦ Conteúdo</div>
+    <div class="field-group">
+      <div>
+        <label>Órgão emissor</label>
+        <input type="text" id="inp-entity" value="Conselho Supremo do Sofá" />
+      </div>
+      <div>
+        <label>Nome do certificado</label>
+        <input type="text" id="inp-title" value="Mestre da Procrastinação" />
+      </div>
+      <div>
+        <label>Nome do homenageado</label>
+        <input type="text" id="inp-name" value="João da Silva" />
+      </div>
+      <div>
+        <label>Motivo / conquista épica</label>
+        <textarea id="inp-reason" rows="3">Por ter assistido 14 episódios seguidos sem piscar e ainda ter pedido mais uma pizza no intervalo do commercial break.</textarea>
+      </div>
+      <div>
+        <label>Data solene</label>
+        <input type="text" id="inp-date" value="10 de Junho de 2026" />
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ASSINATURAS -->
+  <div>
+    <div class="section-title">✦ Assinaturas</div>
+    <div class="field-group">
+      <div>
+        <label>Assinante 1</label>
+        <input type="text" id="inp-sig1-name" value="Dr. Zé Ninguém, PhD. em Nada" />
+      </div>
+      <div>
+        <label>Assinante 2</label>
+        <input type="text" id="inp-sig2-name" value="Profª. Maria Aparecida, BSc. Forró" />
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ESTILO -->
+  <div>
+    <div class="section-title">🎨 Estilo</div>
+    <div class="field-group">
+      <div>
+        <label>Fonte do título</label>
+        <select id="sel-font">
+          <option value="'Playfair Display', serif">Playfair Display (elegante)</option>
+          <option value="'UnifrakturMaguntia', serif">UnifrakturMaguntia (gótico)</option>
+          <option value="'Crimson Text', serif">Crimson Text (clássico)</option>
+          <option value="Georgia, serif">Georgia (sério demais)</option>
+          <option value="'Comic Sans MS', cursive">Comic Sans (a brava)</option>
+          <option value="'Courier New', monospace">Courier New (datilógrafo)</option>
+        </select>
+      </div>
+      <div>
+        <label>Cor principal</label>
+        <div class="color-row">
+          <input type="color" id="col-main" value="#8B1A1A" />
+          <span style="font-size:12px;color:var(--muted)">Títulos, bordas, nome</span>
+        </div>
+      </div>
+      <div>
+        <label>Cor do fundo</label>
+        <div class="color-row">
+          <input type="color" id="col-bg" value="#fdf6e3" />
+          <span style="font-size:12px;color:var(--muted)">Cor do papel</span>
+        </div>
+      </div>
+      <div>
+        <label>Tamanho do título</label>
+        <div class="range-row">
+          <input type="range" id="rng-title-size" min="18" max="72" value="52" />
+          <span class="range-val" id="rng-title-size-val">52px</span>
+        </div>
+      </div>
+      <div>
+        <label>Tamanho do nome</label>
+        <div class="range-row">
+          <input type="range" id="rng-name-size" min="16" max="64" value="44" />
+          <span class="range-val" id="rng-name-size-val">44px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- EMOJI BORDER -->
+  <div>
+    <div class="section-title">🎉 Borda de Emojis</div>
+    <div class="emoji-grid" id="emoji-picker"></div>
+    <div style="margin-top:8px">
+      <label>Ou escreva seu emoji</label>
+      <input type="text" id="inp-custom-emoji" placeholder="Ex: 🤡" maxlength="4" />
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- EXTRAS -->
+  <div>
+    <div class="section-title">✨ Extras</div>
+    <div class="field-group">
+      <div>
+        <label>Emoji do carimbo</label>
+        <input type="text" id="inp-stamp" value="🏆" maxlength="4" />
+      </div>
+      <div>
+        <label>Texto do carimbo</label>
+        <input type="text" id="inp-stamp-text" value="Aprovado pela comissão" />
+      </div>
+      <div>
+        <label>Emoji marca d'água</label>
+        <input type="text" id="inp-watermark" value="🌟" maxlength="4" />
+      </div>
+      <div class="toggle-row">
+        <span style="font-size:13px">Mostrar carimbo</span>
+        <label class="toggle"><input type="checkbox" id="tog-stamp" checked /><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span style="font-size:13px">Mostrar marca d'água</span>
+        <label class="toggle"><input type="checkbox" id="tog-watermark" checked /><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <button class="btn-download" id="btn-download">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Baixar PNG (Alta Qualidade)
+  </button>
+
+</aside>
+
+<main>
+  <div class="preview-top">
+    <span class="preview-label">Pré-visualização — A4</span>
+    <span class="orientation-badge" id="orient-badge">↕ Retrato  794 × 1123px</span>
+  </div>
+  <div id="cert-wrapper">
+    <div id="certificate">
+      <div id="cert-watermark">🌟</div>
+      <div id="cert-border-top"></div>
+      <div id="cert-border-bottom"></div>
+      <div id="cert-border-left"></div>
+      <div id="cert-border-right"></div>
+      <div class="inner-border outer"></div>
+      <div class="inner-border inner"></div>
+      <div id="cert-stamp">
+        <div id="cert-stamp-emoji">🏆</div>
+        <span id="cert-stamp-text">Aprovado pela comissão</span>
+      </div>
+      <div class="cert-content">
+        <div id="cert-entity">Conselho Supremo do Sofá</div>
+        <div id="cert-top-line">— Departamento de Reconhecimentos Absurdos —</div>
+        <div class="cert-rule thick"></div>
+        <div id="cert-certifica">Certifica com toda pompa e circunstância que</div>
+        <div class="cert-to-text">o(a) ilustríssimo(a)</div>
+        <div id="cert-name">João da Silva</div>
+        <div class="cert-rule"></div>
+        <div id="cert-title">Mestre da Procrastinação</div>
+        <div class="cert-rule"></div>
+        <div id="cert-reason-block">
+          <div id="cert-reason-label">em reconhecimento ao feito extraordinário de</div>
+          <div id="cert-reason">Por ter assistido 14 episódios seguidos sem piscar e ainda ter pedido mais uma pizza no intervalo do commercial break.</div>
+        </div>
+        <div id="cert-date">Dado e passado nesta data: 10 de Junho de 2026</div>
+        <div class="cert-signatures">
+          <div class="cert-sig" id="sig1-block">
+            <div class="cert-sig-emoji-el">✍️</div>
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-name" id="sig1-label">Dr. Zé Ninguém, PhD. em Nada</div>
+          </div>
+          <div class="cert-sig" id="sig2-block">
+            <div class="cert-sig-emoji-el">✍️</div>
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-name" id="sig2-label">Profª. Maria Aparecida, BSc. Forró</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── A4 DIMENSIONS ──
+// Portrait:  794 × 1123  (96dpi equivalent)
+// Landscape: 1123 × 794
+
+const ORIENTATIONS = {
+  portrait:  { w: 794,  h: 1123, label: '↕ Retrato  794 × 1123px' },
+  landscape: { w: 1123, h: 794,  label: '↔ Paisagem  1123 × 794px' },
+};
+
+// Scale tokens that depend on orientation
+// portrait values → landscape values (wider, shorter)
+const SCALE = {
+  portrait: {
+    padding: '60px 68px',
+    gap: '0px',
+    entitySize: '27px',
+    topLineSize: '12px',
+    topLineMargin: '6px',
+    ruleH: '1px', ruleW: '80%', ruleMargin: '13px auto',
+    certifica: '14px',
+    titleDefault: 52, titleMin: 18, titleMax: 72,
+    toTextSize: '14px', toTextMargin: '16px',
+    nameDefault: 44, nameMin: 16, nameMax: 64,
+    namePadding: '4px',
+    reasonBlock: '16px', reasonBlockMaxW: '560px',
+    reasonLabelSize: '13px',
+    reasonSize: '18px',
+    dateSize: '13px', dateMargin: '18px',
+    sigGap: '80px', sigMargin: '26px',
+    sigEmojiSize: '30px',
+    sigLineW: '130px', sigLineH: '1px',
+    sigNameSize: '11px', sigNameMaxW: '140px',
+    stampSize: '100px', stampFont: '9px', stampEmoji: '26px',
+    stampBottom: '95px', stampRight: '86px',
+    watermarkSize: '160px',
+    borderFont: '20px',
+    borderRepeatH: 32, borderRepeatV: 30,
+  },
+  landscape: {
+    padding: '44px 80px',
+    gap: '0px',
+    entitySize: '24px',
+    topLineSize: '11px',
+    topLineMargin: '4px',
+    ruleH: '1px', ruleW: '82%', ruleMargin: '10px auto',
+    certifica: '12px',
+    titleDefault: 44, titleMin: 16, titleMax: 68,
+    toTextSize: '12px', toTextMargin: '12px',
+    nameDefault: 38, nameMin: 14, nameMax: 58,
+    namePadding: '3px',
+    reasonBlock: '12px', reasonBlockMaxW: '780px',
+    reasonLabelSize: '12px',
+    reasonSize: '16px',
+    dateSize: '12px', dateMargin: '14px',
+    sigGap: '100px', sigMargin: '20px',
+    sigEmojiSize: '26px',
+    sigLineW: '150px', sigLineH: '1px',
+    sigNameSize: '10px', sigNameMaxW: '160px',
+    stampSize: '90px', stampFont: '8px', stampEmoji: '22px',
+    stampBottom: '72px', stampRight: '100px',
+    watermarkSize: '140px',
+    borderFont: '19px',
+    borderRepeatH: 46, borderRepeatV: 22,
+  }
+};
+
+let currentOrientation = 'portrait';
+let titleSizeOverride = null;
+let nameSizeOverride = null;
+let activeEmoji = '🌟';
+
+// ── ORIENTATION ──
+function setOrientation(orient) {
+  currentOrientation = orient;
+  titleSizeOverride = null;
+  nameSizeOverride = null;
+
+  const dim = ORIENTATIONS[orient];
+  const s = SCALE[orient];
+  const cert = document.getElementById('certificate');
+  const content = cert.querySelector('.cert-content');
+
+  // Dimensions
+  cert.style.width  = dim.w + 'px';
+  cert.style.height = dim.h + 'px';
+  cert.style.padding = s.padding;
+
+  // Badge & buttons
+  document.getElementById('orient-badge').textContent = dim.label;
+  document.getElementById('btn-portrait').classList.toggle('active', orient === 'portrait');
+  document.getElementById('btn-landscape').classList.toggle('active', orient === 'landscape');
+
+  // Watermark
+  document.getElementById('cert-watermark').style.fontSize = s.watermarkSize;
+
+  // Entity
+  const entity = document.getElementById('cert-entity');
+  entity.style.fontSize = s.entitySize;
+
+  // Top line
+  const topLine = document.getElementById('cert-top-line');
+  topLine.style.fontSize = s.topLineSize;
+  topLine.style.marginTop = s.topLineMargin;
+
+  // Rules
+  document.querySelectorAll('.cert-rule').forEach(r => {
+    r.style.height = s.ruleH;
+    r.style.width  = s.ruleW;
+    r.style.margin = s.ruleMargin;
+  });
+
+  // Certifica
+  document.getElementById('cert-certifica').style.fontSize = s.certifica;
+
+  // Title
+  const rngTitle = document.getElementById('rng-title-size');
+  rngTitle.min = s.titleMin;
+  rngTitle.max = s.titleMax;
+  rngTitle.value = s.titleDefault;
+  document.getElementById('rng-title-size-val').textContent = s.titleDefault + 'px';
+  document.getElementById('cert-title').style.fontSize = s.titleDefault + 'px';
+
+  // To text
+  const toText = cert.querySelector('.cert-to-text');
+  toText.style.fontSize = s.toTextSize;
+  toText.style.marginTop = s.toTextMargin;
+
+  // Name
+  const rngName = document.getElementById('rng-name-size');
+  rngName.min = s.nameMin;
+  rngName.max = s.nameMax;
+  rngName.value = s.nameDefault;
+  document.getElementById('rng-name-size-val').textContent = s.nameDefault + 'px';
+  const nameEl = document.getElementById('cert-name');
+  nameEl.style.fontSize = s.nameDefault + 'px';
+  nameEl.style.paddingBottom = s.namePadding;
+
+  // Reason block
+  const rb = document.getElementById('cert-reason-block');
+  rb.style.marginTop = s.reasonBlock;
+  rb.style.maxWidth  = s.reasonBlockMaxW;
+  document.getElementById('cert-reason-label').style.fontSize = s.reasonLabelSize;
+  document.getElementById('cert-reason').style.fontSize = s.reasonSize;
+
+  // Date
+  const dateEl = document.getElementById('cert-date');
+  dateEl.style.fontSize  = s.dateSize;
+  dateEl.style.marginTop = s.dateMargin;
+
+  // Signatures
+  const sigs = cert.querySelector('.cert-signatures');
+  sigs.style.gap       = s.sigGap;
+  sigs.style.marginTop = s.sigMargin;
+  cert.querySelectorAll('.cert-sig-emoji-el').forEach(e => e.style.fontSize = s.sigEmojiSize);
+  cert.querySelectorAll('.cert-sig-line').forEach(l => {
+    l.style.width  = s.sigLineW;
+    l.style.height = s.sigLineH;
+  });
+  cert.querySelectorAll('.cert-sig-name').forEach(n => {
+    n.style.fontSize = s.sigNameSize;
+    n.style.maxWidth = s.sigNameMaxW;
+  });
+
+  // Stamp
+  const stamp = document.getElementById('cert-stamp');
+  stamp.style.width       = s.stampSize;
+  stamp.style.height      = s.stampSize;
+  stamp.style.fontSize    = s.stampFont;
+  stamp.style.padding     = '7px';
+  stamp.style.bottom      = s.stampBottom;
+  stamp.style.right       = s.stampRight;
+  document.getElementById('cert-stamp-emoji').style.fontSize = s.stampEmoji;
+
+  // Borders font size
+  document.getElementById('cert-border-top').style.fontSize    = s.borderFont;
+  document.getElementById('cert-border-bottom').style.fontSize = s.borderFont;
+  document.getElementById('cert-border-left').style.fontSize   = s.borderFont;
+  document.getElementById('cert-border-right').style.fontSize  = s.borderFont;
+
+  updateBorders();
+  applyPreviewScale();
+}
+
+// ── PREVIEW SCALE ──
+function applyPreviewScale() {
+  const main = document.querySelector('main');
+  const availW = main.clientWidth - 48;
+  const availH = main.clientHeight - 80;
+  const dim = ORIENTATIONS[currentOrientation];
+  const scaleW = availW / dim.w;
+  const scaleH = availH / dim.h;
+  const scale = Math.min(scaleW, scaleH, 1);
+  document.getElementById('cert-wrapper').style.transform = `scale(${scale})`;
+}
+
+// ── EMOJI BORDER ──
+function updateBorders() {
+  const emoji = document.getElementById('inp-custom-emoji').value.trim() || activeEmoji;
+  const s = SCALE[currentOrientation];
+  document.getElementById('cert-border-top').textContent    = (emoji + ' ').repeat(s.borderRepeatH);
+  document.getElementById('cert-border-bottom').textContent = (emoji + ' ').repeat(s.borderRepeatH);
+  const vText = (emoji + '\n').repeat(s.borderRepeatV);
+  document.getElementById('cert-border-left').textContent   = vText;
+  document.getElementById('cert-border-right').textContent  = vText;
+}
+
+// ── EMOJI PICKER ──
+const EMOJIS = ['🌟','🏆','🎖️','👑','🤡','💅','🥇','🎉','🍕','🦄','🔥','💯','🚀','🎪','🐉','⚡','🌈','💎','🎭','🏅','🤩','🥳','🫡','🍀','⭐','🎯','🪄','🦸'];
+
+function buildEmojiPicker() {
+  const grid = document.getElementById('emoji-picker');
+  EMOJIS.forEach(e => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn' + (e === activeEmoji ? ' active' : '');
+    btn.textContent = e;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeEmoji = e;
+      document.getElementById('inp-custom-emoji').value = '';
+      updateBorders();
+    });
+    grid.appendChild(btn);
+  });
+}
+
+// ── APPLY MAIN COLOR ──
+function applyMainColor(v) {
+  document.getElementById('cert-title').style.color    = v;
+  document.getElementById('cert-entity').style.color   = v;
+  document.getElementById('cert-name').style.color     = v;
+  document.getElementById('cert-name').style.borderBottomColor = v + '99';
+  document.getElementById('cert-stamp').style.borderColor = v;
+  document.getElementById('cert-stamp').style.color    = v;
+  document.getElementById('cert-top-line').style.color = v;
+  document.querySelectorAll('.inner-border').forEach(b => b.style.borderColor = v + '80');
+  document.querySelector('.cert-rule.thick').style.background =
+    `linear-gradient(to right, transparent, ${v}, transparent)`;
+}
+
+// ── INIT ──
+function init() {
+  buildEmojiPicker();
+  setOrientation('portrait');
+
+  // Content bindings
+  const binds = [
+    ['inp-entity','cert-entity'],['inp-title','cert-title'],
+    ['inp-name','cert-name'],['inp-reason','cert-reason'],
+    ['inp-sig1-name','sig1-label'],['inp-sig2-name','sig2-label'],
+    ['inp-stamp','cert-stamp-emoji'],['inp-stamp-text','cert-stamp-text'],
+  ];
+  binds.forEach(([inpId, certId]) => {
+    document.getElementById(inpId).addEventListener('input', e => {
+      document.getElementById(certId).textContent = e.target.value;
+    });
+  });
+
+  document.getElementById('inp-date').addEventListener('input', e => {
+    document.getElementById('cert-date').textContent = 'Dado e passado nesta data: ' + e.target.value;
+  });
+  document.getElementById('inp-watermark').addEventListener('input', e => {
+    document.getElementById('cert-watermark').textContent = e.target.value || '🌟';
+  });
+
+  // Font
+  document.getElementById('sel-font').addEventListener('change', e => {
+    document.getElementById('cert-title').style.fontFamily = e.target.value;
+    document.getElementById('cert-name').style.fontFamily  = e.target.value;
+  });
+
+  // Colors
+  document.getElementById('col-main').addEventListener('input', e => applyMainColor(e.target.value));
+  document.getElementById('col-bg').addEventListener('input', e => {
+    document.getElementById('certificate').style.background = e.target.value;
+  });
+
+  // Title size
+  document.getElementById('rng-title-size').addEventListener('input', function() {
+    document.getElementById('cert-title').style.fontSize = this.value + 'px';
+    document.getElementById('rng-title-size-val').textContent = this.value + 'px';
+  });
+
+  // Name size
+  document.getElementById('rng-name-size').addEventListener('input', function() {
+    document.getElementById('cert-name').style.fontSize = this.value + 'px';
+    document.getElementById('rng-name-size-val').textContent = this.value + 'px';
+  });
+
+  // Toggles
+  document.getElementById('tog-stamp').addEventListener('change', e => {
+    document.getElementById('cert-stamp').style.display = e.target.checked ? 'flex' : 'none';
+  });
+  document.getElementById('tog-watermark').addEventListener('change', e => {
+    document.getElementById('cert-watermark').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
+  // Custom emoji
+  document.getElementById('inp-custom-emoji').addEventListener('input', () => {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
+    updateBorders();
+  });
+
+  // Download
+  document.getElementById('btn-download').addEventListener('click', downloadPNG);
+
+  // Re-scale on resize
+  window.addEventListener('resize', applyPreviewScale);
+}
+
+// ── DOWNLOAD ──
+async function downloadPNG() {
+  const btn = document.getElementById('btn-download');
+  btn.innerHTML = '⏳ Gerando imagem...';
+  btn.disabled = true;
+
+  const wrapper = document.getElementById('cert-wrapper');
+  const prevTransform = wrapper.style.transform;
+  wrapper.style.transform = 'scale(1)';
+
+  const dim = ORIENTATIONS[currentOrientation];
+
+  try {
+    await document.fonts.ready;
+    const cert = document.getElementById('certificate');
+    const canvas = await html2canvas(cert, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: null,
+      width: dim.w,
+      height: dim.h,
+    });
+    const link = document.createElement('a');
+    const suffix = currentOrientation === 'landscape' ? '-paisagem' : '-retrato';
+    link.download = 'certificado-duvidoso' + suffix + '.png';
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.click();
+  } finally {
+    wrapper.style.transform = prevTransform;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar PNG (Alta Qualidade)`;
+    btn.disabled = false;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
