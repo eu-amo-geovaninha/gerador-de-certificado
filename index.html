@@ -392,6 +392,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-top: 20%;
     }
     .cert-sig-line { background: #1a0a00; opacity: .4; }
     .cert-sig-name {
@@ -486,10 +487,7 @@
         <label>Assinante 1</label>
         <input type="text" id="inp-sig1-name" value="Dr. Zé Ninguém, PhD. em Nada" />
       </div>
-      <div>
-        <label>Assinante 2</label>
-        <input type="text" id="inp-sig2-name" value="Profª. Maria Aparecida, BSc. Forró" />
-      </div>
+        <!-- Segunda assinatura removida - apenas uma assinatura agora -->
     </div>
   </div>
 
@@ -626,14 +624,8 @@
         <div id="cert-date">Dado e passado nesta data: 10 de Junho de 2026</div>
         <div class="cert-signatures">
           <div class="cert-sig" id="sig1-block">
-            <div class="cert-sig-emoji-el">✍️</div>
             <div class="cert-sig-line"></div>
             <div class="cert-sig-name" id="sig1-label">Dr. Zé Ninguém, PhD. em Nada</div>
-          </div>
-          <div class="cert-sig" id="sig2-block">
-            <div class="cert-sig-emoji-el">✍️</div>
-            <div class="cert-sig-line"></div>
-            <div class="cert-sig-name" id="sig2-label">Profª. Maria Aparecida, BSc. Forró</div>
           </div>
         </div>
       </div>
@@ -891,7 +883,7 @@ function init() {
   const binds = [
     ['inp-entity','cert-entity'],['inp-title','cert-title'],
     ['inp-name','cert-name'],['inp-reason','cert-reason'],
-    ['inp-sig1-name','sig1-label'],['inp-sig2-name','sig2-label'],
+    ['inp-sig1-name','sig1-label'],
     ['inp-stamp','cert-stamp-emoji'],['inp-stamp-text','cert-stamp-text'],
   ];
   binds.forEach(([inpId, certId]) => {
